@@ -9,7 +9,9 @@ local function reset()
     if fakeAnchor then fakeAnchor:Destroy(); fakeAnchor = nil end
     if c then 
         local rp = c:FindFirstChild("HumanoidRootPart") 
+        local hum = c:FindFirstChildOfClass("Humanoid")
         if rp then rp.Anchored = false end
+        if hum then hum.AutoRotate = true end -- Возвращаем вращение по умолчанию
         workspace.CurrentCamera.CameraSubject = c:FindFirstChildOfClass("Humanoid")
     end 
 end 
@@ -25,7 +27,7 @@ end end)
 getgenv().NDSEgor = R.RenderStepped:Connect(function() 
     local c = P.Character; 
     local rp = c and c:FindFirstChild("HumanoidRootPart") 
-    local hum = c and c:FindFirstChild("Humanoid"); 
+    local hum = c and c:FindFirstChildOfClass("Humanoid"); 
     if not rp or not hum then return end 
 
     if not X and not G and not r and not q then reset(); return end 
@@ -46,6 +48,7 @@ getgenv().NDSEgor = R.RenderStepped:Connect(function()
     end
 
     if r or q then 
+        hum.AutoRotate = true
         local currentPos = rp.Position
         local nextPos = currentPos
 
@@ -61,17 +64,31 @@ getgenv().NDSEgor = R.RenderStepped:Connect(function()
         end 
 
         local originalCFrame = rp.CFrame
-        
         rp.CFrame = CFrame.lookAt(nextPos, Vector3.new(currentPos.X, nextPos.Y, currentPos.Z))
-        
         R.Heartbeat:Wait()
-       
         rp.CFrame = originalCFrame
 
     elseif G then 
-        rp.CFrame = rp.CFrame * CFrame.new(math.sin(tick()*720)*1.5, math.cos(tick()*480)*1.5, 0) 
+        -- Локально отключаем авто-поворот гуманоида, чтобы Shift Lock не клинил управление
+        hum.AutoRotate = false
+        
+        local camFrame = workspace.CurrentCamera.CFrame
+        local shakeX = camFrame.RightVector * math.sin(tick() * 720) * 1.5
+        local shakeY = camFrame.UpVector * math.cos(tick() * 480) * 1.5
+        
+        -- Позволяем персонажу поворачиваться в сторону камеры программно
+        local lookPos = rp.Position + camFrame.LookVector
+        rp.CFrame = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z)) + shakeX + shakeY
+
     elseif X then 
-        -- Дистанция на X увеличена до 1.0
-        rp.CFrame = rp.CFrame * CFrame.new(math.sin(tick()*250)*1.0, 0, 0) 
+        -- Полный обход блокировки Shift Lock для X
+        hum.AutoRotate = false
+        
+        local camFrame = workspace.CurrentCamera.CFrame
+        local rightVector = camFrame.RightVector
+        
+        -- Высчитываем вибрацию 1.0 влево-вправо относительно мыши, сохраняя поворот тела за взглядом
+        local lookPos = rp.Position + camFrame.LookVector
+        rp.CFrame = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z)) + (rightVector * math.sin(tick() * 250) * 1.0)
     end 
 end)
