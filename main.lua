@@ -114,12 +114,11 @@ getgenv().NDSEgor = R.Heartbeat:Connect(function()
         local lookPos = rp.Position + camFrame.LookVector
         local baseLook = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z))
 
-        -- Левый клон
-        rp.CFrame = baseLook + (rightVector * -6.5)
-        if tool then tool:Activate() end
+        -- ИСПРАВЛЕНИЕ РЕЖИМА X: Математический дриттер (быстрое раскачивание)
+        -- Используем синус от времени, чтобы заставить персонажа бешено метаться влево-вправо
+        local sideOffset = math.sin(tick() * 1200) * 6.5
         
-        -- Правый клон
-        rp.CFrame = baseLook + (rightVector * 6.5)
+        rp.CFrame = baseLook + (rightVector * sideOffset)
         if tool then tool:Activate() end
         
         R.PostSimulation:Wait()
