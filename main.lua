@@ -1,8 +1,18 @@
--- ПЕРЕД ЗАПУСКОМ: Получи TPTool в Infinity Yield (он должен быть в инвентаре или в руках)
 local P, R, U = game.Players.LocalPlayer, game:GetService("RunService"), game:GetService("UserInputService") 
 local X, G, r, q = false, false, false, false 
 local a, sa = 0, 0 
 local fakeAnchor = nil
+
+-- Создаем всплывающее уведомление в правом углу экрана
+task.spawn(function()
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Universal Desync",
+            Text = "Loaded! Get TPTool from Infinity Yield for clones.",
+            Duration = 7
+        })
+    end)
+end)
 
 local function reset() 
     local c = P.Character
