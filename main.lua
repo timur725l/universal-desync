@@ -29,7 +29,7 @@ local function reset()
     end 
 end 
 
--- СОЗДАНИЕ ГУИ В PLAYERGUI (Безопасно для ПК и мобильных экзекуторов)
+-- СОЗДАНИЕ АДАПТИВНОГО ГУИ (Авто-подстройка под ПК и Телефоны)
 local PlayerGui = P:WaitForChild("PlayerGui")
 if PlayerGui:FindFirstChild("UniversalDesyncGUI") then
     PlayerGui.UniversalDesyncGUI:Destroy()
@@ -40,34 +40,49 @@ screenGui.Name = "UniversalDesyncGUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = PlayerGui
 
+-- Главный фрейм с адаптивным размером (Scale)
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 100, 0, 280) -- Уменьшили высоту до 280 пикселей
-frame.Position = UDim2.new(0.05, 0, 0.3, 0)
+frame.Size = UDim2.new(0.12, 10, 0.45, 0) -- Ширина 12% от экрана, высота 45% от экрана
+frame.Position = UDim2.new(0.02, 0, 0.25, 0)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true 
 frame.Parent = screenGui
 
--- Скругление углов для GUI
+-- Ограничитель размера, чтобы на планшетах/больших телефонах меню не растягивалось слишком сильно
+local sizeConstraint = Instance.new("UISizeConstraint")
+sizeConstraint.MinSize = Vector2.new(90, 240)
+sizeConstraint.MaxSize = Vector2.new(130, 310)
+sizeConstraint.Parent = frame
+
 local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 8)
 frameCorner.Parent = frame
 
+-- Автоматическая вертикальная раскладка для кнопок, чтобы они идеально заполняли панель
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0.02, 0) -- Плавный процентный отступ между кнопками
+listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+listLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Parent = frame
+
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 30)
+title.Size = UDim2.new(0.9, 0, 0.08, 0)
 title.Text = "Desync"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.SourceSansBold
-title.TextSize = 16
+title.TextScaled = true -- Текст автоматически сжимается/увеличивается под экран
+title.LayoutOrder = 1
 title.Parent = frame
 
 local buttons = {
-    {Name = "Mode X", Key = "X"},
-    {Name = "Mode G", Key = "G"},
-    {Name = "Mode R", Key = "R"},
-    {Name = "Mode Q", Key = "Q"}
+    {Name = "Mode X", Key = "X", Order = 2},
+    {Name = "Mode G", Key = "G", Order = 3},
+    {Name = "Mode R", Key = "R", Order = 4},
+    {Name = "Mode Q", Key = "Q", Order = 5}
 }
 
 local activeButtons = {}
@@ -89,16 +104,16 @@ local function toggleMode(mode)
     updateButtonVisuals()
 end
 
--- Создаем кнопки на панели (сделали отступ чуть плотнее)
+-- Создаем кнопки с адаптивным размером
 for i, btnData in ipairs(buttons) do
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 80, 0, 38) -- Слегка уменьшили высоту кнопок для компактности
-    btn.Position = UDim2.new(0.5, -40, 0, 32 + (i - 1) * 44) -- Уплотнили шаги позиций
+    btn.Size = UDim2.new(0.85, 0, 0.14, 0) -- Кнопки занимают 85% ширины панели
     btn.Text = btnData.Name
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 14
+    btn.TextScaled = true -- Текст кнопок адаптируется под экран смартфона
     btn.BorderSizePixel = 0
+    btn.LayoutOrder = btnData.Order
     btn.Parent = frame
     
     local btnCorner = Instance.new("UICorner")
@@ -112,16 +127,16 @@ for i, btnData in ipairs(buttons) do
     end)
 end
 
--- Кнопка сброса (Reset / Turn off)
+-- Адаптивная кнопка "Reset"
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 80, 0, 30)
-closeBtn.Position = UDim2.new(0.5, -40, 0, 208) -- Сместили выше под плотное расположение
+closeBtn.Size = UDim2.new(0.85, 0, 0.11, 0)
 closeBtn.Text = "Reset"
 closeBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeBtn.Font = Enum.Font.SourceSansBold
-closeBtn.TextSize = 14
+closeBtn.TextScaled = true
 closeBtn.BorderSizePixel = 0
+closeBtn.LayoutOrder = 6
 closeBtn.Parent = frame
 
 local closeCorner = Instance.new("UICorner")
@@ -134,38 +149,43 @@ closeBtn.MouseButton1Click:Connect(function()
     updateButtonVisuals()
 end)
 
--- Увеличенная кнопка "Open" в углу экрана (100x50 пикселей)
-local openBtn = Instance.new("TextButton")
-openBtn.Size = UDim2.new(0, 100, 0, 50)
-openBtn.Position = UDim2.new(0, 15, 0, 15)
-openBtn.Text = "Open"
-openBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-openBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-openBtn.Font = Enum.Font.SourceSansBold
-openBtn.TextSize = 16 
-openBtn.BorderSizePixel = 0
-openBtn.Visible = false
-openBtn.Parent = screenGui
-
-local openCorner = Instance.new("UICorner")
-openCorner.CornerRadius = UDim.new(0, 6)
-openCorner.Parent = openBtn
-
--- Кнопка "Hide" внутри панели
+-- Адаптивная кнопка "Hide"
 local hideBtn = Instance.new("TextButton")
-hideBtn.Size = UDim2.new(0, 80, 0, 30)
-hideBtn.Position = UDim2.new(0.5, -40, 0, 242) -- Сместили в самый низ уменьшенного фрейма
+hideBtn.Size = UDim2.new(0.85, 0, 0.11, 0)
 hideBtn.Text = "Hide"
 hideBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 hideBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
 hideBtn.Font = Enum.Font.SourceSansBold
-hideBtn.TextSize = 14
+hideBtn.TextScaled = true
 hideBtn.BorderSizePixel = 0
+hideBtn.LayoutOrder = 7
 hideBtn.Parent = frame
 
 local hideCorner = Instance.new("UICorner")
 hideCorner.CornerRadius = UDim.new(0, 5)
 hideCorner.Parent = hideBtn
+
+-- Адаптивная кнопка "Open" в углу экрана (масштабируется на телефонах)
+local openBtn = Instance.new("TextButton")
+openBtn.Size = UDim2.new(0.12, 0, 0.07, 0)
+openBtn.Position = UDim2.new(0.02, 0, 0.02, 0)
+openBtn.Text = "Open"
+openBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+openBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+openBtn.Font = Enum.Font.SourceSansBold
+openBtn.TextScaled = true
+openBtn.BorderSizePixel = 0
+openBtn.Visible = false
+openBtn.Parent = screenGui
+
+local openBtnConstraint = Instance.new("UISizeConstraint")
+openBtnConstraint.MinSize = Vector2.new(70, 35)
+openBtnConstraint.MaxSize = Vector2.new(110, 55)
+openBtnConstraint.Parent = openBtn
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(0, 6)
+openCorner.Parent = openBtn
 
 hideBtn.MouseButton1Click:Connect(function()
     frame.Visible = false
@@ -261,20 +281,17 @@ getgenv().NDSEgor = R.Heartbeat:Connect(function()
     elseif X then 
         hum.AutoRotate = false
         local camFrame = workspace.CurrentCamera.CFrame
-        local rightVector = camFrame.RightVector
-        local lookPos = rp.Position + camFrame.LookVector
-        local baseLook = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z))
-
-        local sideOffset = math.sin(tick() * 1200) * 6.5
-        
-        rp.CFrame = baseLook + (rightVector * sideOffset)
-        if tool then tool:Activate() end
-        
-        R.PostSimulation:Wait()
-        rp.CFrame = originalCFrame
-    end 
+Используйте код с осторожностью.
+local rightVector = camFrame.RightVector
+local lookPos = rp.Position + camFrame.LookVector
+local baseLook = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z))
+local sideOffset = math.sin(tick() * 1200) * 6.5
+rp.CFrame = baseLook + (rightVector * sideOffset)
+if tool then tool:Activate() end
+R.PostSimulation:Wait()
+rp.CFrame = originalCFrame
+end
 end)
-
 P.CharacterRemoving:Connect(function()
-    reset()
+reset()
 end)
