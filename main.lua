@@ -281,7 +281,6 @@ getgenv().NDSEgor = R.Heartbeat:Connect(function()
     elseif X then 
         hum.AutoRotate = false
         local camFrame = workspace.CurrentCamera.CFrame
-Используйте код с осторожностью.
 local rightVector = camFrame.RightVector
 local lookPos = rp.Position + camFrame.LookVector
 local baseLook = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z))
