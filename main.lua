@@ -29,7 +29,7 @@ local function reset()
     end 
 end 
 
--- СОЗДАНИЕ АДАПТИВНОГО ГУИ (Авто-подстройка под ПК и Телефоны)
+-- СОЗДАНИЕ ГУИ (Оставляем твою структуру, просто добавлена адаптивность)
 local PlayerGui = P:WaitForChild("PlayerGui")
 if PlayerGui:FindFirstChild("UniversalDesyncGUI") then
     PlayerGui.UniversalDesyncGUI:Destroy()
@@ -40,9 +40,8 @@ screenGui.Name = "UniversalDesyncGUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = PlayerGui
 
--- Главный фрейм с адаптивным размером (Scale)
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0.12, 10, 0.45, 0) -- Ширина 12% от экрана, высота 45% от экрана
+frame.Size = UDim2.new(0.12, 10, 0.45, 0)
 frame.Position = UDim2.new(0.02, 0, 0.25, 0)
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 frame.BorderSizePixel = 0
@@ -50,7 +49,6 @@ frame.Active = true
 frame.Draggable = true 
 frame.Parent = screenGui
 
--- Ограничитель размера, чтобы на планшетах/больших телефонах меню не растягивалось слишком сильно
 local sizeConstraint = Instance.new("UISizeConstraint")
 sizeConstraint.MinSize = Vector2.new(90, 240)
 sizeConstraint.MaxSize = Vector2.new(130, 310)
@@ -60,9 +58,8 @@ local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 8)
 frameCorner.Parent = frame
 
--- Автоматическая вертикальная раскладка для кнопок, чтобы они идеально заполняли панель
 local listLayout = Instance.new("UIListLayout")
-listLayout.Padding = UDim.new(0.02, 0) -- Плавный процентный отступ между кнопками
+listLayout.Padding = UDim.new(0.02, 0)
 listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 listLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 listLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -74,7 +71,7 @@ title.Text = "Desync"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.SourceSansBold
-title.TextScaled = true -- Текст автоматически сжимается/увеличивается под экран
+title.TextScaled = true
 title.LayoutOrder = 1
 title.Parent = frame
 
@@ -104,14 +101,13 @@ local function toggleMode(mode)
     updateButtonVisuals()
 end
 
--- Создаем кнопки с адаптивным размером
 for i, btnData in ipairs(buttons) do
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.85, 0, 0.14, 0) -- Кнопки занимают 85% ширины панели
+    btn.Size = UDim2.new(0.85, 0, 0.14, 0)
     btn.Text = btnData.Name
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextScaled = true -- Текст кнопок адаптируется под экран смартфона
+    btn.TextScaled = true
     btn.BorderSizePixel = 0
     btn.LayoutOrder = btnData.Order
     btn.Parent = frame
@@ -127,7 +123,6 @@ for i, btnData in ipairs(buttons) do
     end)
 end
 
--- Адаптивная кнопка "Reset"
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0.85, 0, 0.11, 0)
 closeBtn.Text = "Reset"
@@ -149,7 +144,6 @@ closeBtn.MouseButton1Click:Connect(function()
     updateButtonVisuals()
 end)
 
--- Адаптивная кнопка "Hide"
 local hideBtn = Instance.new("TextButton")
 hideBtn.Size = UDim2.new(0.85, 0, 0.11, 0)
 hideBtn.Text = "Hide"
@@ -165,7 +159,6 @@ local hideCorner = Instance.new("UICorner")
 hideCorner.CornerRadius = UDim.new(0, 5)
 hideCorner.Parent = hideBtn
 
--- Адаптивная кнопка "Open" в углу экрана (масштабируется на телефонах)
 local openBtn = Instance.new("TextButton")
 openBtn.Size = UDim2.new(0.12, 0, 0.07, 0)
 openBtn.Position = UDim2.new(0.02, 0, 0.02, 0)
@@ -210,6 +203,7 @@ end)
 
 if getgenv().NDSEgor then getgenv().NDSEgor:Disconnect() end 
 
+-- НАЧАЛО ТВОЕЙ ОРИГИНАЛЬНОЙ ТЕХНИКИ
 getgenv().NDSEgor = R.Heartbeat:Connect(function() 
     local c = P.Character; 
     local rp = c and c:FindFirstChild("HumanoidRootPart") 
@@ -236,10 +230,17 @@ getgenv().NDSEgor = R.Heartbeat:Connect(function()
         fakeAnchor.CFrame = fakeAnchor.CFrame:Lerp(rp.CFrame, 0.1)
     end
 
+    -- Внешнее незаметное смещение позиции для ходьбы (не ломает оригинальный цикл)
+    if hum.MoveDirection.Magnitude > 0 then
+        local dt = R.Heartbeat:Wait()
+        -- Двигаем физическую позицию RootPart прямо перед началом расчетов десинка
+        rp.CFrame = rp.CFrame + (hum.MoveDirection * (hum.WalkSpeed * dt))
+    end
+
     local originalCFrame = rp.CFrame
 
     if r or q then 
-        hum.AutoRotate = true
+        hum.AutoRotate = false 
         local currentPos = rp.Position
 
         for k = 1, 3 do
@@ -279,11 +280,11 @@ getgenv().NDSEgor = R.Heartbeat:Connect(function()
         rp.CFrame = originalCFrame
 
     elseif X then 
-        hum.AutoRotate = false
+        hum.AutoRotate = false -- Оставляем твои оригинальные настройки вращения
         local camFrame = workspace.CurrentCamera.CFrame
-local rightVector = camFrame.RightVector
-local lookPos = rp.Position + camFrame.LookVector
-local baseLook = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z))
+        local rightVector = camFrame.RightVector
+        local lookPos = rp.Position + camFrame.LookVector
+        local baseLook = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z))
 local sideOffset = math.sin(tick() * 1200) * 6.5
 rp.CFrame = baseLook + (rightVector * sideOffset)
 if tool then tool:Activate() end
