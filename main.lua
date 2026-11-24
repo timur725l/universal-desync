@@ -242,50 +242,53 @@ getgenv().NDSEgor = R.Heartbeat:Connect(function()
     if r or q then 
         hum.AutoRotate = false 
         local currentPos = rp.Position
+        local camFrame = workspace.CurrentCamera.CFrame
+        local flatLook = Vector3.new(camFrame.LookVector.X, 0, camFrame.LookVector.Z)
+        if flatLook.Magnitude > 0 then flatLook = flatLook.Unit else flatLook = Vector3.new(0, 0, -1) end
+        local flatRight = Vector3.new(camFrame.RightVector.X, 0, camFrame.RightVector.Z)
+        if flatRight.Magnitude > 0 then flatRight = flatRight.Unit else flatRight = Vector3.new(1, 0, 0) end
 
         for k = 1, 3 do
             local phaseOffset = (k - 1) * (math.pi * 2 / 3)
             local nextPos = currentPos
 
-            if q then 
-                sa = sa + 0.15; 
-                local arc = math.sin(sa + phaseOffset) * (math.pi / 2) 
+            if q then
+                sa = sa + 0.15;
+                local arc = math.sin(sa + phaseOffset) * (math.pi / 2)
                 local x, z = math.sin(arc) * 7.5, -math.cos(arc) * 7.2
-                nextPos = currentPos + Vector3.new(x, 0, z)
-            elseif r then 
-                a = a + 0.15; 
+                nextPos = currentPos + (flatRight * x) + (flatLook * z)
+            elseif r then
+                a = a + 0.15;
                 local x, z = math.cos(a + phaseOffset) * 7.2, math.sin(a + phaseOffset) * 7.2
                 nextPos = currentPos + Vector3.new(x, 0, z)
-            end 
+            end
 
             rp.CFrame = CFrame.lookAt(nextPos, Vector3.new(currentPos.X, nextPos.Y, currentPos.Z))
             if tool then tool:Activate() end
         end
-        
+
         R.PostSimulation:Wait()
         rp.CFrame = originalCFrame
 
-    elseif G then 
+    elseif G then
         hum.AutoRotate = false
         local camFrame = workspace.CurrentCamera.CFrame
-        
+
         local shakeX = camFrame.RightVector * math.sin(tick() * 999) * 4.5
         local shakeY = camFrame.UpVector * math.cos(tick() * 777) * 4.5
         local lookPos = rp.Position + camFrame.LookVector
-        
-        rp.CFrame = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z)) + shakeX + shakeY
-        if tool then tool:Activate() end
-        
-        R.PostSimulation:Wait()
-        rp.CFrame = originalCFrame
 
-    elseif X then 
-        hum.AutoRotate = false -- Оставляем твои оригинальные настройки вращения
-        local camFrame = workspace.CurrentCamera.CFrame
-        local rightVector = camFrame.RightVector
-        local lookPos = rp.Position + camFrame.LookVector
-        local baseLook = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z))
-local sideOffset = math.sin(tick() * 1200) * 6.5
+        rp.CFrame = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z)) + shakeX + shakeY
+if tool then tool:Activate() end
+R.PostSimulation:Wait()
+rp.CFrame = originalCFrame
+elseif X then
+hum.AutoRotate = false -- Оставляем твои оригинальные настройки вращения
+local camFrame = workspace.CurrentCamera.CFrame
+local rightVector = camFrame.RightVector
+local lookPos = rp.Position + camFrame.LookVector
+local baseLook = CFrame.lookAt(rp.Position, Vector3.new(lookPos.X, rp.Position.Y, lookPos.Z))
+local sideOffset = math.sin(tick() * 1200) * 2.8
 rp.CFrame = baseLook + (rightVector * sideOffset)
 if tool then tool:Activate() end
 R.PostSimulation:Wait()
